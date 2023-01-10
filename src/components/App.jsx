@@ -17,22 +17,23 @@ export class App extends Component {
   };
 
   onFormSubmit = ({ name, number }) => {
+    const existContact = this.state.contacts.some(contact => {
+      const existName = contact.name.toLowerCase();
+      const newName = name.toLowerCase();
+      return existName === newName;
+    });
+
+    if (existContact) {
+      alert(`${name} is already in contacts.`);
+      return;
+    }
+
     const newContact = {
       name,
       number,
       id: nanoid(),
     };
 
-    if (
-      this.state.contacts.some(contact => {
-        const existName = contact.name.toLowerCase();
-        const newName = name.toLowerCase();
-        return existName === newName;
-      })
-    ) {
-      alert(`${name} is already in contacts.`);
-      return;
-    }
     this.setState(({ contacts }) => {
       return { contacts: [...contacts, newContact] };
     });
@@ -44,29 +45,28 @@ export class App extends Component {
     }));
   };
 
-  render() {
-    const filterValue = this.state.filter;
-    const contacts = this.state.contacts;
-    const filteredContacts = contacts.filter(
+  getFilteredContacts = ({ filter, contacts }) =>
+    contacts.filter(
       ({ name, number }) =>
-        name.toLowerCase().includes(filterValue) ||
-        number.toLowerCase().includes(filterValue)
+        name.toLowerCase().includes(filter) ||
+        number.toLowerCase().includes(filter)
     );
+
+  render() {
+    const { contacts, filter } = this.state;
+    const filteredContacts = this.getFilteredContacts({ filter, contacts });
     return (
       <Box ml="50px">
         <h1>Phonebook</h1>
         <ContactsForm
           onFormSubmit={this.onFormSubmit}
-          values={this.state.contacts}
+          values={contacts}
         ></ContactsForm>
 
         <h2>Contacts</h2>
-        {contacts[0] && (
+        {contacts.length > 0 && (
           <>
-            <Filter
-              value={this.state.filter}
-              onFilterChange={this.onFilterChange}
-            />
+            <Filter value={filter} onFilterChange={this.onFilterChange} />
             <ContactsList
               contacts={filteredContacts}
               onContactDelete={this.onContactDelete}
